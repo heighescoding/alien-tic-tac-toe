@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1f44">
+  <meta name="description" content="Alien Tic-Tac-Toe: battle friendly alien rivals to claim squares in this free, one-player browser game.">
+  <title>Alien Tic-Tac-Toe | Cosmic Arcade</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --navy: #08172e;
+      --space: #0c2243;
+      --space-2: #143660;
+      --panel: #112e55;
+      --panel-hi: #19426e;
+      --blue: #69d7ff;
+      --blue-soft: #b9ebff;
+      --orange: #ff972f;
+      --orange-light: #ffcc68;
+      --cream: #fff7e8;
+      --muted: #b8d0e5;
+      --edge: #416f9f;
+      --shadow: 0 24px 75px rgba(0, 7, 25, .5);
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--cream);
+      font-family: 'Trebuchet MS', 'Arial Rounded MT Bold', system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 8% 10%, rgba(84, 170, 255, .20) 0, transparent 23%),
+        radial-gradient(circle at 100% 85%, rgba(255, 135, 38, .14) 0, transparent 30%),
+        radial-gradient(circle at 85% 3%, #1a4776 0, transparent 32%),
+        linear-gradient(160deg, #06132b, #0a1c39 57%, #0a1b34);
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(1.4px 1.4px at 12% 17%, #fff 90%, transparent),
+        radial-gradient(1.7px 1.7px at 23% 37%, #ffe3a1 90%, transparent),
+        radial-gradient(1px 1px at 41% 8%, #fff 90%, transparent),
+        radial-gradient(1.5px 1.5px at 71% 18%, #fff 90%, transparent),
+        radial-gradient(1px 1px at 87% 48%, #fff 90%, transparent),
+        radial-gradient(2px 2px at 59% 75%, #ffc275 90%, transparent),
+        radial-gradient(1px 1px at 8% 82%, #fff 90%, transparent);
+      background-size: 430px 340px;
+      opacity: .5;
+      z-index: -1;
+    }
+    button { font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 3px solid #fff2aa; outline-offset: 4px; }
+    button:disabled { cursor: not-allowed; }
+    .app { max-width: 1300px; margin: 0 auto; padding: 22px 24px 34px; position: relative; }
+    .eyebrow { letter-spacing: .2em; text-transform: uppercase; font-size: .7rem; color: var(--orange-light); font-weight: 900; }
+    .masthead { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 150px; }
+    .brand { display: flex; align-items: center; gap: 17px; min-width: 0; }
+    .brand-icon { width: 81px; height: 81px; display: grid; place-items: center; flex: 0 0 auto; filter: drop-shadow(0 7px 12px rgba(0,0,0,.2)); }
+    .brand-icon svg { width: 100%; height: 100%; }
+    h1 { font-size: clamp(2.1rem, 4.5vw, 4.4rem); line-height: .93; margin: 7px 0 10px; letter-spacing: -.055em; text-shadow: 0 4px 0 rgba(0,0,0,.2); }
+    h1 .alien-word { color: var(--orange); }
+    h1 .tic-word { color: var(--blue); }
+    .tagline { color: var(--muted); font-size: .95rem; margin: 0; }
+    .header-actions { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .top-btn { border: 1px solid #5481ad; background: rgba(22, 56, 97, .84); color: white; padding: 12px 16px; border-radius: 14px; font-weight: 800; min-height: 46px; }
+    .top-btn:hover { background: #255482; }
+    .top-btn.restart { border-color: rgba(255, 176, 76, .75); color: #ffe0a6; }
+    .hidden { display: none !important; }
+    .stage-wrap { position: relative; }
+    .main-stage {
+      border: 2px solid #5380ad;
+      background: linear-gradient(147deg, rgba(18, 51, 90, .98), rgba(8, 29, 56, .98));
+      box-shadow: inset 0 0 0 6px rgba(6, 20, 44, .65), var(--shadow);
+      border-radius: 27px;
+      padding: 25px;
+      display: grid;
+      grid-template-columns: minmax(300px, .95fr) minmax(330px, 1.05fr);
+      gap: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+    .main-stage::before { content: ''; position: absolute; border-radius: 50%; width: 310px; height: 310px; top: -260px; right: 14%; background: radial-gradient(circle at 35% 35%, #ffc16d, #e66b24 70%); opacity: .55; pointer-events: none; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; position: relative; }
+    .section-pill { border-radius: 999px; color: #182444; background: linear-gradient(#ffcc7a, #ff982f); text-transform: uppercase; padding: 7px 15px; font-size: .82rem; letter-spacing: .09em; font-weight: 1000; box-shadow: 0 4px 0 #93441c; }
+    .section-note { color: var(--blue-soft); font-size: .78rem; font-weight: 800; }
+    .board-card { padding: 17px; border-radius: 24px; background: linear-gradient(145deg,#1a436d, #0b2443); border: 2px solid #386c9f; box-shadow: inset 0 0 0 5px #102f54, 0 15px 30px #020b20a0; }
+    .board-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .cell {
+      aspect-ratio: 1 / 1;
+      min-width: 0;
+      border: 2px solid #568bbc;
+      border-radius: 15px;
+      background: linear-gradient(150deg, #224b79, #102b4f);
+      color: #fff;
+      box-shadow: inset 0 4px 12px rgba(11, 25, 49, .4), 0 4px 0 rgba(0,0,0,.21);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: clamp(3rem, 5.8vw, 5.4rem);
+      font-weight: 1000;
+      line-height: 1;
+      transition: transform .12s ease, border-color .14s ease, background .14s ease;
+    }
+    .cell:not(:disabled):hover { border-color: #ffca80; background: #235888; transform: translateY(-2px); }
+    .cell:disabled { opacity: 1; }
+    .cell.board-locked:empty::after { content: ''; }
+    .cell .mark-x { color: var(--orange); text-shadow: 0 4px 0 #7c381f, 0 0 18px #ff922f70; }
+    .cell .mark-o { color: var(--blue); text-shadow: 0 4px 0 #166087, 0 0 18px #69d7ff77; }
+    .cell.pending { outline: 3px solid var(--orange-light); outline-offset: -7px; }
+    .cell.pending::after { content: '★'; color: #ffd076; font-size: 1.8rem; }
+    .cell.win-line { background: #235f7c; border-color: #ffbe62; }
+    .board-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: 16px; }
+    .scores { display: flex; flex-wrap: wrap; gap: 10px; }
+    .score-pill { display: flex; align-items: center; gap: 7px; border-radius: 10px; background: #071d37; border: 1px solid #41688f; padding: 8px 11px; font-size: .84rem; color: #d9eaf8; font-weight: 800; }
+    .score-pill b { font-size: 1.14rem; }
+    .score-pill .x { color: var(--orange); }
+    .score-pill .o { color: var(--blue); }
+    .board-hint { margin: 14px 3px 0; min-height: 38px; line-height: 1.5; font-size: .89rem; color: #bddbf0; }
+    .right-panel { border: 2px solid #4a7cae; border-radius: 23px; background: linear-gradient(160deg, rgba(34,84,129,.85), rgba(16,46,83,.97)); padding: 18px; min-height: 485px; box-shadow: inset 0 0 0 5px rgba(8,30,55,.55); position: relative; overflow: hidden; }
+    .right-panel::before { position: absolute; content: ''; top: -92px; right: -100px; width: 230px; height: 230px; background: radial-gradient(circle,#68daff21,transparent 70%); pointer-events: none; }
+    .panel-inner { position: relative; display: flex; flex-direction: column; gap: 16px; height: 100%; }
+    .info-title { font-size: clamp(1.55rem, 2.8vw, 2.25rem); margin: 0; line-height: 1.1; letter-spacing: -.03em; }
+    .info-copy { margin: 0; color: #d0e6f5; line-height: 1.5; font-size: .98rem; }
+    .story-box { display: flex; align-items: center; gap: 14px; border-radius: 18px; padding: 13px 15px; background: #fef5e8; color: #193153; border: 3px solid #9fd7f1; box-shadow: 0 5px 0 #092343; }
+    .story-box .avatar { width: 76px; height: 83px; flex: none; }
+    .story-text { flex: 1; min-width: 0; }
+    .story-text h3 { margin: 0 0 5px; font-size: 1.04rem; }
+    .story-text p { margin: 0; font-size: .84rem; line-height: 1.45; }
+    .action-primary { border: 2px solid #ffdc91; background: linear-gradient(#ffc067, #ff8e2b); color: #19304e; border-radius: 16px; padding: 14px 19px; min-height: 54px; font-size: 1.08rem; font-weight: 1000; box-shadow: 0 6px 0 #a44f1b, 0 10px 20px rgba(0,0,0,.18); }
+    .action-primary:hover { filter: brightness(1.08); }
+    .action-primary:active { transform: translateY(3px); box-shadow: 0 3px 0 #a44f1b; }
+    .action-outline { color: #ecf7ff; border: 1px solid #91bee4; background: rgba(12,40,74,.65); font-weight: 900; border-radius: 13px; padding: 12px 17px; min-height: 49px; }
+    .action-outline:hover { background: #315f8d; }
+    .intro-heroes { display: flex; justify-content: center; align-items: flex-end; gap: 8px; padding: 5px 0 3px; min-height: 165px; }
+    .intro-heroes .avatar { width: clamp(92px, 10vw, 130px); height: clamp(112px, 12vw, 153px); filter: drop-shadow(0 7px 3px rgba(0,0,0,.25)); }
+    .intro-heroes .avatar:nth-child(2) { transform: translateY(-6px) scale(1.1); }
+    .quick-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+    .quick-steps div { text-align: center; border: 1px solid #668eb6; background: #0b2a4e; border-radius: 13px; padding: 11px 7px; color: #d4e9f8; font-size: .78rem; }
+    .quick-steps strong { display: block; color: #ffbe67; font-size: 1.15rem; margin-bottom: 3px; }
+    .battle-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .battle-header .enemy-name { margin: 0; color: #ffda9d; font-size: 1.04rem; }
+    .battle-header .battle-label { color: #9fd9f9; font-weight: 900; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; }
+    .health-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .health-card { display: flex; align-items: center; gap: 9px; border: 1px solid #5489ba; border-radius: 15px; padding: 9px 11px; background: rgba(4,24,47,.78); min-width: 0; }
+    .health-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #244e80; border: 1px solid #68b7ed; flex: none; font-size: 1.4rem; }
+    .health-icon .avatar { width: 34px; height: 38px; }
+    .health-copy { min-width: 0; }
+    .health-copy .value { font-weight: 900; font-size: .83rem; white-space: nowrap; }
+    .health-copy .hearts { display: flex; gap: 4px; margin-top: 3px; }
+    .heart { color: #495e7b; font-size: 1.38rem; line-height: 1; }
+    .heart.full.player { color: #ffa643; }
+    .heart.full.enemy { color: #68d9ff; }
+    .attack-card { display: flex; align-items: center; gap: 10px; border: 2px solid #76a6d1; border-radius: 16px; background: #f9f2e7; color: #143659; padding: 10px; min-height: 120px; }
+    .attack-card .avatar { width: 92px; height: 106px; flex: none; }
+    .attack-card strong { font-size: 1.08rem; }
+    .attack-card p { margin: 7px 0 0; line-height: 1.42; font-size: .86rem; }
+    .attack-name { color: #bc4d13; font-weight: 1000; }
+    .response-label { margin: 0; font-size: .79rem; color: #ddf3ff; font-weight: 900; letter-spacing: .08em; text-align: center; text-transform: uppercase; }
+    .response-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+    .response-button { color: #1d3555; background: linear-gradient(160deg,#ffcc80,#ff9436); border: 2px solid #ffe4a6; border-radius: 15px; padding: 11px 4px; min-height: 100px; box-shadow: 0 5px 0 #86421f; font-weight: 900; }
+    .response-button:hover:not(:disabled) { filter: brightness(1.09); transform: translateY(-2px); }
+    .response-button:disabled { opacity: .65; }
+    .response-icon { display: block; font-size: 1.9rem; margin-bottom: 6px; }
+    .response-text { display: block; font-size: 1.08rem; }
+    .response-caption { display: block; font-size: .7rem; line-height: 1.3; font-weight: 700; color: #4d3e3f; margin-top: 3px; }
+    .feedback-banner { background: #092d52; padding: 12px 15px; border: 1px solid #659dca; border-radius: 13px; line-height: 1.5; font-size: .86rem; }
+    .feedback-banner strong { color: #ffcc79; }
+    .bottom-action { margin-top: auto; width: 100%; }
+    .result-badge { align-self: flex-start; border-radius: 30px; padding: 6px 13px; background: #ffb452; color: #1d2945; font-weight: 1000; font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; }
+    .result-celebrate { font-size: 3.4rem; line-height: 1; margin: 0; }
+    .mini-board { display: flex; gap: 12px; padding: 12px; background: #082344; border: 1px solid #4b80b1; border-radius: 13px; color: #d2e9f7; font-size: .91rem; }
+    .mini-mark { font-size: 2.1rem; line-height: 1; font-weight: 1000; }
+    .mini-mark.orange { color: var(--orange); }
+    .mini-mark.blue { color: var(--blue); }
+    .help-overlay { position: absolute; z-index: 4; inset: 0; padding: clamp(12px,3vw,35px); border-radius: 25px; background: rgba(4,16,35,.95); display: flex; align-items: center; justify-content: center; }
+    .help-card { width: min(650px, 100%); max-height: 100%; overflow: auto; background: linear-gradient(#153a67, #0c284b); border: 2px solid #87bcdf; border-radius: 21px; padding: clamp(18px,3vw,31px); box-shadow: 0 18px 65px #0009; }
+    .help-card h2 { margin: 8px 0; font-size: 1.75rem; }
+    .help-card p { margin: 6px 0 16px; line-height: 1.5; color: #d4eafa; }
+    .counter-table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: .93rem; }
+    .counter-table th { color: #ffcb84; text-align: left; font-size: .8rem; letter-spacing: .05em; }
+    .counter-table td,.counter-table th { padding: 9px 10px; border-bottom: 1px solid #406790; }
+    .crew-strip { display: grid; grid-template-columns: auto repeat(3,minmax(0,1fr)); align-items: stretch; gap: 12px; margin-top: 17px; }
+    .crew-heading { align-self: center; padding: 10px 5px; }
+    .crew-heading h2 { margin: 5px 0 6px; font-size: 1.2rem; line-height: 1.1; color: var(--orange-light); }
+    .crew-heading p { color: #c7daee; font-size: .8rem; line-height: 1.4; margin: 0; max-width: 160px; }
+    .crew-card { border: 1px solid #416e9e; background: linear-gradient(145deg, #153761, #0c2548); border-radius: 15px; min-height: 121px; padding: 10px; display: flex; align-items: center; gap: 7px; overflow: hidden; }
+    .crew-card .avatar { width: 82px; height: 90px; flex: none; }
+    .crew-card h3 { margin: 0 0 3px; font-size: .96rem; color: #fff1d7; }
+    .crew-card span { font-size: .72rem; line-height: 1.4; color: #b8d9ed; }
+    .crew-card .crew-title { color: #ffb860; font-weight: 800; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 4px; }
+    .page-foot { margin: 18px 2px 0; color: #abc5dc; font-size: .82rem; text-align: center; }
+    @media (max-width: 1000px) {
+      .brand-icon { width: 65px; height: 65px; }
+      .main-stage { gap: 14px; padding: 18px; grid-template-columns: minmax(250px, .92fr) minmax(300px,1.08fr); }
+      .right-panel { padding: 13px; }
+      .crew-strip { grid-template-columns: repeat(3,1fr); }
+      .crew-heading { grid-column: 1/-1; padding: 0; }
+      .crew-heading p { max-width: none; }
+      .crew-card .avatar { width: 66px; height: 74px; }
+    }
+    @media (max-width: 730px) {
+      .app { padding: 13px 11px 24px; }
+      .masthead { min-height: 0; align-items: flex-start; flex-wrap: wrap; padding-bottom: 15px; }
+      .brand { gap: 7px; }
+      .brand-icon { width: 52px; height: 52px; }
+      h1 { font-size: clamp(1.85rem,7.7vw,3.2rem); }
+      .tagline { font-size: .75rem; }
+      .header-actions { width: 100%; justify-content: flex-end; }
+      .top-btn { padding: 9px 13px; font-size: .82rem; }
+      .main-stage { display: flex; flex-direction: column; padding: 13px; gap: 18px; border-radius: 19px; }
+      .board-card { width: min(410px,100%); margin: 0 auto; }
+      .board-zone { width: 100%; }
+      .board-grid { gap: 7px; }
+      .cell { font-size: 3.6rem; }
+      .right-panel { min-height: 0; }
+      .intro-heroes .avatar { width: 103px; height: 120px; }
+      .crew-strip { gap: 7px; }
+      .crew-card { flex-direction: column; align-items: center; text-align: center; }
+    }
+    @media (max-width: 430px) {
+      .eyebrow { font-size: .58rem; }
+      .brand-icon { width: 43px; height: 43px; }
+      .board-card { padding: 11px; }
+      .board-grid { gap: 6px; }
+      .cell { font-size: 3rem; border-radius: 11px; }
+      .right-panel { padding: 12px; }
+      .response-button { min-height: 85px; padding: 8px 2px; }
+      .response-text { font-size: .93rem; }
+      .response-caption { display: none; }
+      .attack-card .avatar { width: 69px; height: 84px; }
+      .health-icon { display: none; }
+      .intro-heroes .avatar { width: 83px; height: 105px; }
+      .crew-card .avatar { width: 75px; }
+      .crew-card { padding: 8px 3px; }
+      .crew-card span { font-size: .64rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="masthead">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="orb" x1="0" x2=".8" y1="0" y2="1"><stop stop-color="#ffdc7d"/><stop offset="1" stop-color="#fd7b25"/></linearGradient></defs>
+            <circle cx="52" cy="49" r="32" fill="url(#orb)" stroke="#ffefc8" stroke-width="3"/>
+            <path d="M30 39c9-13 21-14 30-8" fill="none" stroke="#f8a13f" stroke-width="7" stroke-linecap="round"/>
+            <ellipse cx="50" cy="55" rx="46" ry="12" transform="rotate(-25 50 55)" fill="none" stroke="#64d6ff" stroke-width="7"/>
+            <ellipse cx="50" cy="55" rx="46" ry="12" transform="rotate(-25 50 55)" fill="none" stroke="#cceffc" stroke-width="2"/>
+            <circle cx="62" cy="42" r="4" fill="#fff2bf"/>
+            <circle cx="29" cy="18" r="3" fill="#fff4cf"/>
+          </svg>
+        </div>
+        <div><div class="eyebrow">A little cosmic competition</div><h1><span class="alien-word">Alien</span> <span class="tic-word">Tic-Tac-Toe</span></h1><p class="tagline">Pick a square. Win the battle. Claim the galaxy.</p></div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="top-btn" id="helpButton" aria-controls="helpOverlay" aria-expanded="false">? How to play</button>
+        <button type="button" class="top-btn restart hidden" id="restartButton" title="Clear the entire board and active battle">↻ Restart game</button>
+      </div>
+    </header>
+
+    <div class="stage-wrap">
+      <main id="mainStage" class="main-stage">
+        <section class="board-zone" aria-labelledby="boardHeading">
+          <div class="section-heading"><span class="section-pill" id="boardHeading">Game board</span><span class="section-note" id="boardStageLabel">Awaiting launch</span></div>
+          <div class="board-card">
+            <div id="boardGrid" class="board-grid" role="group" aria-label="Three by three tic-tac-toe board"></div>
+            <div class="board-foot">
+              <div class="scores"><div class="score-pill"><b class="x">X</b> Your squares: <span id="xCount">0</span></div><div class="score-pill"><b class="o">O</b> Alien squares: <span id="oCount">0</span></div></div>
+              <div class="section-note" id="sectorCount">0 / 9 sectors</div>
+            </div>
+          </div>
+          <p class="board-hint" id="boardHint">Your mission begins when you press Start game.</p>
+        </section>
+        <section class="battle-zone" aria-label="Game actions and alien battle">
+          <div class="section-heading"><span class="section-pill" id="panelHeading">Mission briefing</span><span class="section-note" id="panelStageLabel">Ready, captain?</span></div>
+          <div class="right-panel"><div id="sidePanel" class="panel-inner" aria-live="polite" aria-atomic="true"></div></div>
+        </section>
+      </main>
+      <section id="helpOverlay" class="help-overlay hidden" role="dialog" aria-modal="false" aria-labelledby="helpTitle">
+        <div class="help-card">
+          <div class="eyebrow">Mission handbook</div>
+          <h2 id="helpTitle">How to play</h2>
+          <p>Choose any empty square. A short alien battle decides who claims it. Win the battle to place <strong style="color:#ffa43c">X</strong>. Lose it and the aliens place <strong style="color:#80dfff">O</strong>. There is no extra alien move.</p>
+          <p>Each battle starts with 2 health for you and 2 for the alien. Choose one response per exchange. Correct counters damage the alien; all other choices damage you.</p>
+          <table class="counter-table"><thead><tr><th>Alien shows</th><th>Your counter</th></tr></thead><tbody><tr><td>⚡ Laser</td><td>🛡 Shield</td></tr><tr><td>🛡 Shield</td><td>💥 Blast</td></tr><tr><td>🐾 Claw</td><td>↗ Dodge</td></tr></tbody></table>
+          <p>Three X marks in a row wins the board. Three O marks means the aliens win. A full board without a line is a draw. The <strong>Restart game</strong> button clears the entire board and any ongoing battle.</p>
+          <button type="button" id="closeHelp" class="action-primary">Got it! Back to the game →</button>
+        </div>
+      </section>
+    </div>
+
+    <aside class="crew-strip" aria-label="Meet the alien rivals">
+      <div class="crew-heading"><div class="eyebrow">Meet your rivals</div><h2>The Cosmic Crew</h2><p>Three original, friendly faces. One galaxy-sized challenge.</p></div>
+      <div class="crew-card"><div data-alien-avatar="0"></div><div><span class="crew-title">The optimist</span><h3>Sunny</h3><span>Little alien. Big confidence.</span></div></div>
+      <div class="crew-card"><div data-alien-avatar="1"></div><div><span class="crew-title">The strategist</span><h3>Nova</h3><span>Always thinking ahead.</span></div></div>
+      <div class="crew-card"><div data-alien-avatar="2"></div><div><span class="crew-title">The trickster</span><h3>Ziggy</h3><span>Master of mischief.</span></div></div>
+    </aside>
+    <footer class="page-foot">Designed for mouse, touch, and keyboard. Use Tab to navigate and Enter or Space to select. ✦ Every battle starts fresh.</footer>
+  </div>
+
+  <script>
+  (() => {
+    'use strict';
+    const attackOrder = ['Laser', 'Shield', 'Claw'];
+    const counters = { Laser: 'Shield', Shield: 'Blast', Claw: 'Dodge' };
+    const counterSymbols = { Shield: '🛡', Blast: '✴', Dodge: '↗' };
+    const lineSets = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    const rivals = [{name:'Sunny',tag:'the optimist'},{name:'Nova',tag:'the strategist'},{name:'Ziggy',tag:'the trickster'}];
+    const byId = id => document.getElementById(id);
+    const panel = byId('sidePanel');
+    const boardGrid = byId('boardGrid');
+    const mainStage = byId('mainStage');
+    const helpOverlay = byId('helpOverlay');
+    const helpButton = byId('helpButton');
+    const restartButton = byId('restartButton');
+    let svgCounter = 0;
+    let helpOpen = false;
+    let game = blankGame('instructions');
+
+    function blankGame(phase) {
+      return {phase,board:Array(9).fill(null),pendingCell:null,playerHp:2,alienHp:2,exchange:0,feedback:'',lastBattle:null,alienIndex:0,result:null,winningLine:[]};
+    }
+    function avatarSvg(type) {
+      const i = svgCounter++;
+      const g = `bodyGradient${i}`;
+      const eye = `eyeGradient${i}`;
+      const defs = `<defs><linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${type===0?'#fff4af':type===1?'#c4c4ff':'#76f5e7'}"/><stop offset="1" stop-color="${type===0?'#ff952f':type===1?'#7865cf':'#19a2c1'}"/></linearGradient><radialGradient id="${eye}"><stop stop-color="#405d82"/><stop offset=".65" stop-color="#152e53"/><stop offset="1" stop-color="#081b3b"/></radialGradient></defs>`;
+      if (type===0) return `<svg class="avatar" viewBox="0 0 120 138" role="img" aria-label="Sunny, a cheerful round orange alien" xmlns="http://www.w3.org/2000/svg">${defs}<ellipse cx="59" cy="131" rx="42" ry="5" fill="#071a37" opacity=".2"/><path d="M37 44 26 15M79 42 94 17" stroke="#6250aa" stroke-width="7" stroke-linecap="round"/><circle cx="24" cy="13" r="11" fill="#ffad42" stroke="#fff1a6" stroke-width="3"/><circle cx="96" cy="15" r="10" fill="#ffad42" stroke="#fff1a6" stroke-width="3"/><path d="M31 91Q6 100 10 78M87 90q26 6 26-17" fill="none" stroke="#ffb94e" stroke-width="12" stroke-linecap="round"/><path d="M45 112 42 129M73 113 78 129" stroke="#ff9e41" stroke-width="12" stroke-linecap="round"/><ellipse cx="60" cy="79" rx="43" ry="48" fill="url(#${g})" stroke="#fff1aa" stroke-width="3"/><ellipse cx="60" cy="106" rx="23" ry="13" fill="#ffe9b3" opacity=".7"/><ellipse cx="42" cy="70" rx="16" ry="22" fill="white"/><ellipse cx="80" cy="70" rx="16" ry="22" fill="white"/><ellipse cx="45" cy="74" rx="9" ry="16" fill="url(#${eye})"/><ellipse cx="78" cy="74" rx="9" ry="16" fill="url(#${eye})"/><circle cx="48" cy="67" r="4" fill="white"/><circle cx="81" cy="67" r="4" fill="white"/><path d="M49 94q10 18 23 0" fill="#863748" stroke="#8d4455" stroke-width="3" stroke-linecap="round"/><circle cx="31" cy="88" r="5" fill="#f37f70" opacity=".8"/><circle cx="90" cy="88" r="5" fill="#f37f70" opacity=".8"/><path d="M15 77q-12-4-11-14m98 1 11-7" stroke="#fff3b4" stroke-width="3" stroke-linecap="round"/></svg>`;
+      if (type===1) return `<svg class="avatar" viewBox="0 0 120 138" role="img" aria-label="Nova, a poised purple alien" xmlns="http://www.w3.org/2000/svg">${defs}<ellipse cx="59" cy="132" rx="42" ry="5" fill="#071a37" opacity=".2"/><path d="M34 73Q15 100 18 132L52 118 95 134Q98 91 77 72Z" fill="#534fa3" stroke="#8c99ed" stroke-width="2"/><path d="M47 81 60 124 75 81" fill="#ff9b46"/><path d="M38 88 13 103M82 90l28-15" stroke="#9e91eb" stroke-width="10" stroke-linecap="round"/><path d="M52 47 48 13M70 46 78 13" stroke="#867ddb" stroke-width="4" stroke-linecap="round"/><circle cx="47" cy="10" r="7" fill="#ffbc62"/><circle cx="79" cy="12" r="7" fill="#ffbc62"/><path d="M53 62 50 97 72 99 69 64" fill="url(#${g})"/><ellipse cx="61" cy="55" rx="34" ry="40" fill="url(#${g})" stroke="#d8c8ff" stroke-width="2"/><path d="M34 53q13-11 24 0M66 53q14-11 26-1" stroke="#654ca6" stroke-width="3" fill="none"/><ellipse cx="47" cy="58" rx="11" ry="7" fill="#fff3f9"/><ellipse cx="77" cy="57" rx="11" ry="7" fill="#fff3f9"/><ellipse cx="48" cy="58" rx="5" ry="6" fill="#26275e"/><ellipse cx="76" cy="57" rx="5" ry="6" fill="#26275e"/><circle cx="49" cy="56" r="2" fill="white"/><circle cx="77" cy="55" r="2" fill="white"/><path d="M53 77q8 5 17-2" fill="none" stroke="#68417a" stroke-width="3" stroke-linecap="round"/><path d="M55 94 61 100 67 94" fill="#ffe5a8"/><circle cx="61" cy="110" r="5" fill="#ffce72"/></svg>`;
+      return `<svg class="avatar" viewBox="0 0 120 138" role="img" aria-label="Ziggy, a mischievous blue alien with orange ears" xmlns="http://www.w3.org/2000/svg">${defs}<ellipse cx="59" cy="133" rx="42" ry="5" fill="#071a37" opacity=".2"/><path d="M35 42Q0 14 5 74L36 73M83 40q42-31 32 32l-35 0" fill="#20acbc" stroke="#bdf9df" stroke-width="3"/><path d="M24 55 12 40l5 25M96 53l13-16-5 29" fill="#ff9950"/><path d="M36 48 27 15M79 49 89 15" stroke="#31afc0" stroke-width="6" stroke-linecap="round"/><circle cx="25" cy="13" r="8" fill="#ffab48"/><circle cx="91" cy="14" r="8" fill="#ffab48"/><path d="M33 105Q14 117 10 107M84 103q21 17 29 5" fill="none" stroke="#27bbbf" stroke-width="12" stroke-linecap="round"/><path d="M43 119 32 130M77 118 89 130" stroke="#22b3c5" stroke-width="12" stroke-linecap="round"/><ellipse cx="60" cy="81" rx="39" ry="45" fill="url(#${g})" stroke="#b9fff2" stroke-width="3"/><ellipse cx="44" cy="72" rx="15" ry="19" fill="white"/><ellipse cx="78" cy="72" rx="15" ry="19" fill="white"/><ellipse cx="47" cy="77" rx="10" ry="13" fill="url(#${eye})"/><ellipse cx="78" cy="75" rx="10" ry="13" fill="url(#${eye})"/><circle cx="50" cy="71" r="3.5" fill="white"/><circle cx="81" cy="70" r="3.5" fill="white"/><path d="M40 96Q60 122 82 94Q61 102 40 96" fill="#603a5c" stroke="#1b4567" stroke-width="2"/><path d="m44 99 5 9 5-8m9 2 5 8 5-10" fill="#fff7e7"/><circle cx="31" cy="92" r="4" fill="#fa9485" opacity=".9"/><circle cx="89" cy="91" r="4" fill="#fa9485" opacity=".9"/></svg>`;
+    }
+    function hearts(kind, count) {
+      return `<div class="hearts" aria-hidden="true"><span class="heart ${count>=1?'full '+kind:''}">♥</span><span class="heart ${count>=2?'full '+kind:''}">♥</span></div>`;
+    }
+    function counts() {return {x:game.board.filter(c=>c==='X').length,o:game.board.filter(c=>c==='O').length};}
+    function escapeText(text){ return String(text).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+    function renderBoard() {
+      const {x,o}=counts();
+      byId('xCount').textContent=String(x);
+      byId('oCount').textContent=String(o);
+      byId('sectorCount').textContent=`${x+o} / 9 sectors`;
+      const isBoard=game.phase==='board';
+      boardGrid.innerHTML=game.board.map((mark,index)=>{
+        const row=Math.floor(index/3)+1,col=index%3+1;
+        const pending=game.pendingCell===index;
+        const winning=game.winningLine.includes(index);
+        return `<button type="button" class="cell ${pending?'pending':''} ${winning?'win-line':''} ${!isBoard?'board-locked':''}" data-cell="${index}" aria-label="Row ${row}, column ${col}, ${mark|| (pending?'battle in progress':'empty')}" ${(!isBoard||mark||helpOpen)?'disabled':''}>${mark?`<span class="mark-${mark.toLowerCase()}" aria-hidden="true">${mark}</span>`:''}</button>`;
+      }).join('');
+      const hints={instructions:'Your mission begins when you press Start game.',board:'Choose any empty sector. Each square is awarded through a battle.',battle:`Sector ${game.pendingCell+1} is locked. Defeat the alien to claim it!`,feedback:`Sector ${game.pendingCell+1} is locked. Press Next exchange to continue.`, 'battle-summary':'The battle is settled. Return to the board for your next square.', 'game-over':'The board is complete! Press Play again to start a fresh mission.'};
+      byId('boardHint').textContent=hints[game.phase];
+      byId('boardStageLabel').textContent={instructions:'Awaiting launch',board:'Select a sector',battle:'Battle in progress',feedback:'Battle in progress','battle-summary':'Sector resolved','game-over':'Mission complete'}[game.phase];
+    }
+    function renderIntro() {
+      return `<div class="eyebrow">Your adventure starts here</div><h2 class="info-title">Nine squares.<br>One cosmic showdown.</h2><p class="info-copy">Every empty square hides a mini-battle. Outwit the aliens to claim it with an X. Get three in a row before they do!</p><div class="intro-heroes">${[0,1,2].map(avatarSvg).join('')}</div><div class="quick-steps"><div><strong>①</strong>Pick a square</div><div><strong>②</strong>Win the battle</div><div><strong>③</strong>Get three X's</div></div><button class="action-primary bottom-action" data-action="start">🚀 Start game →</button>`;
+    }
+    function renderPickCell() {
+      return `<div class="eyebrow">Mission control</div><h2 class="info-title">Your move, captain!</h2><p class="info-copy">Choose any empty square on the left. Your next alien opponent is ready to battle for it.</p><div class="intro-heroes">${[0,1,2].map(avatarSvg).join('')}</div><div class="story-box"><div class="story-text"><h3>Here's the twist!</h3><p>Each battle decides exactly one square. A win puts X there; a loss puts O there. The alien never takes an extra turn.</p></div></div><div class="feedback-banner">★ <strong>Tip:</strong> Shield blocks Laser, Blast beats Shield, and Dodge avoids Claw.</div>`;
+    }
+    function renderBattle() {
+      const enemy=rivals[game.alienIndex],attack=attackOrder[game.exchange];
+      const health=`<div class="health-row"><div class="health-card"><div class="health-icon" aria-hidden="true">🧑‍🚀</div><div class="health-copy"><div class="value">You: ${game.playerHp}/2</div>${hearts('player',game.playerHp)}</div></div><div class="health-card"><div class="health-icon">${avatarSvg(game.alienIndex)}</div><div class="health-copy"><div class="value">${enemy.name}: ${game.alienHp}/2</div>${hearts('enemy',game.alienHp)}</div></div></div>`;
+      const attackCard=`<div class="attack-card">${avatarSvg(game.alienIndex)}<div><strong>${escapeText(enemy.name)} uses <span class="attack-name">${escapeText(attack)}</span>!</strong><p>Exchange ${game.exchange+1} of at most 3. Choose the right counter to deal 1 damage.</p></div></div>`;
+      const actions=`<p class="response-label">Choose your response</p><div class="response-grid">${['Shield','Blast','Dodge'].map(response=>`<button type="button" class="response-button" data-response="${response}"><span class="response-icon" aria-hidden="true">${counterSymbols[response]}</span><span class="response-text">${response}</span><span class="response-caption">${response==='Shield'?'Block Laser':response==='Blast'?'Break Shield':'Avoid Claw'}</span></button>`).join('')}</div>`;
+      return `<div class="battle-header"><div><div class="battle-label">Sector ${game.pendingCell+1} · Exchange ${game.exchange+1}</div><h2 class="enemy-name">Battle ${escapeText(enemy.name)}!</h2></div><span class="result-badge">Fight for ${game.pendingCell+1}</span></div>${health}${attackCard}${actions}<div class="feedback-banner">⭐ <strong>Remember:</strong> A correct response damages only the alien. A wrong response damages only you.</div>`;
+    }
+    function renderFeedback() {
+      const e=rivals[game.alienIndex];
+      return `<div class="battle-header"><div><div class="battle-label">Sector ${game.pendingCell+1}</div><h2 class="enemy-name">Battle ${escapeText(e.name)}!</h2></div><span class="result-badge">Exchange ${game.exchange+1}</span></div><div class="health-row"><div class="health-card"><div class="health-icon" aria-hidden="true">🧑‍🚀</div><div class="health-copy"><div class="value">You: ${game.playerHp}/2</div>${hearts('player',game.playerHp)}</div></div><div class="health-card"><div class="health-icon">${avatarSvg(game.alienIndex)}</div><div class="health-copy"><div class="value">${e.name}: ${game.alienHp}/2</div>${hearts('enemy',game.alienHp)}</div></div></div><div class="story-box">${avatarSvg(game.alienIndex)}<div class="story-text"><h3>Exchange complete!</h3><p>${escapeText(game.feedback)}</p></div></div><p class="info-copy">The responses are locked until you advance. Both sides are still standing!</p><button type="button" data-action="next" class="action-primary bottom-action">Next exchange →</button>`;
+    }
+    function renderBattleSummary() {
+      const b=game.lastBattle;
+      const win=b.result==='X';
+      return `<span class="result-badge">Sector ${b.cell+1} claimed</span><p class="result-celebrate" aria-hidden="true">${win?'🌟':'🪐'}</p><h2 class="info-title">${win?'Battle won!':'Battle lost!'}</h2><div class="mini-board"><span class="mini-mark ${win?'orange':'blue'}">${b.result}</span><span>${win?'You earned an X!':'The aliens earned an O.'} Exactly one square changed, and the board is still in play.</span></div><div class="story-box">${avatarSvg(game.alienIndex)}<div class="story-text"><h3>${escapeText(rivals[game.alienIndex].name)} says...</h3><p>${escapeText(b.feedback)}</p></div></div><p class="info-copy">You can choose another empty square when you return to the board. Every new battle starts at full health.</p><button type="button" class="action-primary bottom-action" data-action="return">← Return to board</button>`;
+    }
+    function renderGameOver() {
+      const result=game.result;
+      const title=result==='X'?'You won the galaxy!':result==='O'?'The aliens won!':'It\u2019s a cosmic draw!';
+      const expl=result==='X'?'Three X marks made a line. You outsmarted the crew!':result==='O'?'Three O marks made a line. The crew got you this time!':'All nine sectors are claimed, and neither side has a line.';
+      const win=result==='X';
+      const icon=result==='X'?'🏆':result==='O'?'🛸':'🌌';
+      const mark=result==='draw'?'X / O':result;
+      return `<span class="result-badge">Mission complete</span><p class="result-celebrate" aria-hidden="true">${icon}</p><h2 class="info-title">${title}</h2><p class="info-copy">${expl}</p><div class="mini-board"><span class="mini-mark ${win?'orange':'blue'}">${mark}</span><span>${game.lastBattle.result==='X'?'You won':'The aliens won'} the final battle for sector ${game.lastBattle.cell+1}. ${escapeText(game.lastBattle.feedback)}</span></div><div class="story-box">${avatarSvg(game.alienIndex)}<div class="story-text"><h3>${win?'The crew salutes you!':result==='O'?'Ready for a rematch?':'Everyone gave it their all!'}</h3><p>Play again starts with nine empty squares and no pending battle.</p></div></div><button type="button" class="action-primary bottom-action" data-action="again">↻ Play again</button>`;
+    }
+    function render() {
+      renderBoard();
+      const heading={instructions:'Mission briefing',board:'Choose a square',battle:'Alien battle',feedback:'Alien battle','battle-summary':'Battle result','game-over':'Final result'};
+      byId('panelHeading').textContent=heading[game.phase];
+      byId('panelStageLabel').textContent={instructions:'Ready, captain?',board:'Your move',battle:'Think fast',feedback:'One answer counted','battle-summary':'One square awarded','game-over':'Board finished'}[game.phase];
+      const content={instructions:renderIntro,board:renderPickCell,battle:renderBattle,feedback:renderFeedback,'battle-summary':renderBattleSummary,'game-over':renderGameOver};
+      panel.innerHTML=content[game.phase]();
+      restartButton.classList.toggle('hidden',game.phase==='instructions');
+      document.title=`Alien Tic-Tac-Toe | ${game.phase==='game-over'?'Game over':'Cosmic Arcade'}`;
+    }
+    function startGame() { game=blankGame('board'); render(); }
+    function selectCell(index) {
+      if(game.phase!=='board'||helpOpen||!Number.isInteger(index)||index<0||index>8||game.board[index]!==null) return;
+      game.pendingCell=index;
+      game.playerHp=2;game.alienHp=2;game.exchange=0;game.feedback='';game.alienIndex=index%3;game.phase='battle';render();
+    }
+    function boardOutcome() {
+      for(const line of lineSets) {
+        if(game.board[line[0]] && game.board[line[0]]===game.board[line[1]] && game.board[line[0]]===game.board[line[2]])return {winner:game.board[line[0]],line};
+      }
+      if(game.board.every(v=>v!==null))return {winner:'draw',line:[]};
+      return null;
+    }
+    function resolveBattle() {
+      const cell=game.pendingCell;
+      if(cell===null||game.board[cell]!==null) return;
+      const result=game.alienHp===0?'X':'O';
+      game.board[cell]=result;
+      game.lastBattle={cell,result,feedback:game.feedback};
+      game.pendingCell=null;
+      const outcome=boardOutcome();
+      if(outcome){game.result=outcome.winner;game.winningLine=outcome.line;game.phase='game-over';}
+      else game.phase='battle-summary';
+    }
+    function respond(response) {
+      if(game.phase!=='battle'||helpOpen||!['Shield','Blast','Dodge'].includes(response))return;
+      const attack=attackOrder[game.exchange];
+      const correct=counters[attack]===response;
+      if(correct){game.alienHp--;game.feedback=`${response} counters ${attack}. Alien loses 1 health.`;}
+      else{game.playerHp--;game.feedback=`${response} does not counter ${attack}. You lose 1 health. ${counters[attack]} was the correct counter.`;}
+      if(game.playerHp===0||game.alienHp===0)resolveBattle();
+      else game.phase='feedback';
+      render();
+    }
+    function nextExchange(){if(game.phase!=='feedback'||helpOpen||game.playerHp===0||game.alienHp===0)return;game.exchange++;game.phase='battle';render();}
+    function returnToBoard(){if(game.phase!=='battle-summary'||helpOpen)return;game.phase='board';render();}
+    function setHelp(open,{restoreFocus=true}={}) {
+      if(helpOpen===open)return;
+      helpOpen=open;
+      helpOverlay.classList.toggle('hidden',!open);
+      mainStage.inert=open;
+      helpButton.setAttribute('aria-expanded',String(open));
+      if(open)byId('closeHelp').focus();
+      else if(restoreFocus)helpButton.focus();
+    }
+    function restart(){if(game.phase==='instructions')return;setHelp(false,{restoreFocus:false});startGame();}
+    boardGrid.addEventListener('click',ev=>{const button=ev.target.closest('button[data-cell]');if(button)selectCell(Number(button.dataset.cell));});
+    panel.addEventListener('click',ev=>{
+      const button=ev.target.closest('button');if(!button||helpOpen)return;
+      if(button.dataset.response){respond(button.dataset.response);return;}
+      const action=button.dataset.action;
+      if(action==='start'||action==='again')startGame();
+      if(action==='next')nextExchange();
+      if(action==='return')returnToBoard();
+    });
+    helpButton.addEventListener('click',()=>setHelp(!helpOpen));
+    byId('closeHelp').addEventListener('click',()=>setHelp(false));
+    restartButton.addEventListener('click',restart);
+    document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&helpOpen){ev.preventDefault();setHelp(false);}});
+    document.querySelectorAll('[data-alien-avatar]').forEach(el=>{el.innerHTML=avatarSvg(Number(el.dataset.alienAvatar));});
+    render();
+  })();
+  </script>
+</body>
+</html>
